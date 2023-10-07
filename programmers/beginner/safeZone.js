@@ -1,79 +1,52 @@
 // 코딩테스트 연습 > 코딩테스트 입문 > 안전지대
 // https://school.programmers.co.kr/learn/courses/30/lessons/120866
 
-// 나의 의도: 일일이 for문 돌려서 board[i][j]가 있으면 
-// => 해당 board[i][j]가 위험지대인지 확인하고, => 값을 2로 바꿔준다.
-// 그리고나서 2의 개수를 세서 return한다.
-
-// 그래서 아래와 같이 풀었는데, 에러 발생 (실행한 결괏값이 기댓값과 다름)
+// 정답 코드
 
 function solution(board) {
-  let count = 0;
+  // 주어진 위치 주변에 있는 위험한 지역을 찾아주는 함수
+  const addDangerousPosition = (mineRowIdx, mineColIdx, maxRow, maxCol) => {
+    const dangerousIdxs = [];
 
-  for (let i = 0; i < board.length; i++) {
-    for (let j = 0; j < board[i].length; j++) {
-      if (board[i][j] == 1) {
-        if (board[i - 1] && board[i - 1][j - 1] == 0) {
-          board[i - 1][j - 1] = 2;
-        }
-        if (board[i - 1] && board[i - 1][j] == 0) {
-          board[i - 1][j] = 2;
-        }
-        if (board[i - 1] && board[i - 1][j + 1] == 0) {
-          board[i - 1][j + 1] = 2;
-        }
+    // 3x3 영역을 순회하면서 인덱스를 계산하여 배열에 추가
+    for (let i = mineRowIdx - 1; i < mineRowIdx - 1 + 3; i++) {
+      for (let j = mineColIdx - 1; j < mineColIdx - 1 + 3; j++) {
+        const idx = maxRow * i + j;
 
-        if (board[i][j - 1] == 0) {
-          board[i][j - 1] = 2;
-        }
-
-        board[i][j] = 2;
-
-        if (board[i][j + 1] == 0) {
-          board[i][j + 1] = 2;
-        }
-
-        if (board[i + 1] && board[i + 1][j - 1] == 0) {
-          board[i + 1][j - 1] = 2;
-        }
-        if (board[i + 1] && board[i + 1][j] == 0) {
-          board[i + 1][j] = 2;
-        }
-        if (board[i + 1] && board[i + 1][j + 1] == 0) {
-          board[i + 1][j + 1] = 2;
+        // 유효한 인덱스인 경우에만 추가
+        if (0 <= i && i < maxRow && 0 <= j && j < maxCol) {
+          dangerousIdxs.push(idx);
         }
       }
     }
-  }
 
-  for (let i = 0; i < board.length; i++) {
-    for (let j = 0; j < board[i].length; j++) {
-      if (board[i][j] == 2) {
-        count++;
+    return dangerousIdxs;
+  };
+
+  // 위험한 지역의 인덱스를 저장할 배열
+  const dangerousIdxs = [];
+
+  // 보드의 행을 순회
+  board.forEach((rows, rowIdx) => {
+    // 행의 각 원소를 순회
+    rows.forEach((target, colIdx) => {
+      // 지뢰가 있는 위치인 경우
+      if (target === 1) {
+        // 주변의 위험한 지역을 찾아서 배열에 추가
+        const newDangerousIdxs = addDangerousPosition(
+          rowIdx,
+          colIdx,
+          board.length,
+          board[0].length
+        );
+        dangerousIdxs.push(...newDangerousIdxs);
       }
-    }
-  }
-  return count;
+    });
+  });
+
+  // 중복된 지역을 제외하고, 안전한 지역의 개수를 계산
+  const answer =
+    board.length * board[0].length - [...new Set(dangerousIdxs)].length;
+
+  return answer;
 }
-
-
-//     board[i-1][j-1 ~ j ~ j+1]
-//     board[i][[j-1 ~ j ~ j+1]
-//     board[i+1][j-1 ~ j ~ j+1]
-//     개수 다 센 다음... board[i][j]의 전체 원소 개수에서 빼려고 한다.
-
-/* 입출력 예
-[0, 0, 0, 0, 0]
-[0, 0, 0, 0, 0]
-[0, 0, 0, 0, 0]
-[0, 0, 1, 0, 0]
-[0, 0, 0, 0, 0]
-=> 그럼 이 케이스에서는 위험지역이 8개, 안전지역이 25-8-1=16개이다.*/
-
-/* 입출력 예: 안전지역은 25-12 = 13개
-[0, 0, 0, 0, 0]
-[0, 0, 0, 0, 0]
-[0, 0, 0, 0, 0]
-[0, 0, 1, 1, 0]
-[0, 0, 0, 0, 0]
-*/
